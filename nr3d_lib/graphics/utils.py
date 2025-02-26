@@ -94,7 +94,9 @@ def PSNR(x: torch.Tensor, y: torch.Tensor, mask: torch.BoolTensor=None, only_in_
     if (mask is not None):
         mask = mask.view(*x.shape[:-1])
         if only_in_mask:
-            mse = ((x - y)**2)[mask].sum() / mask.sum().clip(1e-5)
+            # NOTE: The mask should be expanded to match the shape of x (or y); otherwise, the PSNR may be lower than expected.
+            mask_expanded = mask.view(*x.shape[:-1]).unsqueeze(-1).expand_as(x)
+            mse = ((x - y)**2)[mask_expanded].sum() / mask_expanded.sum().clip(1e-5)
         else:
             # NOTE: x should not be masked; 
             #       and the convergence of mask will also affect performance here (which is expected)
